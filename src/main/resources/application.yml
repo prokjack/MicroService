@@ -1,0 +1,7 @@
+spring:
+  security:
+    oauth2:
+      client:
+        clientId:
+        clientSecret:
+        accessTokenUri: https://graph.facebook.com/oauth/access_token
