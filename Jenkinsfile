@@ -8,7 +8,6 @@ node{
     def creds = "docker-cred-id"
 
     try{
-        stages {
             stage('Checkout'){
                 git 'https://github.com/prokjack/MicroService.git'
                 sh "git rev-parse --short HEAD > .git/commit-id"
@@ -23,7 +22,6 @@ node{
             stage('Deploy on K8s'){
                 sh "ansible-playbook /var/lib/jenkins/ansible/sayarapp-deploy/deploy.yml  --user=jenkins --extra-vars ImageName=${ImageName} --extra-vars imageTag=${imageTag} --extra-vars Namespace=${Namespace}"
             }
-        }
     } catch (err) {
         currentBuild.result = 'FAILURE'
     }
