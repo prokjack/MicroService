@@ -1,0 +1,19 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+    name: recruitment-service-deployment
+    namespace: development
+    labels:
+        app: recruitment-service-app
+spec:
+    replicas: 1
+    template:
+        metadata:
+            labels:
+                apps: recruitment-service
+        spec:
+            containers:
+                - name: recruitment-service
+                  image: localhost:5000/bats-qa/recruitment-service:development
+                  ports:
+                      - containerPort: 8080

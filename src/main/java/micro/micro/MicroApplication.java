@@ -7,7 +7,7 @@ import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
 import org.springframework.web.reactive.function.server.HandlerFunction;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
-import reactor.ipc.netty.http.server.HttpServer;
+import reactor.netty.http.server.HttpServer;
 
 import java.net.URI;
 
@@ -27,10 +27,10 @@ public class MicroApplication {
 
         HttpHandler httpHandler = RouterFunctions.toHttpHandler(router);
 
-        HttpServer
-                .create("localhost", 8080)
-                .newHandler(new ReactorHttpHandlerAdapter(httpHandler))
-                .block();
+        HttpServer.create().host("localhost").port(8087)
+            .handle(new ReactorHttpHandlerAdapter(httpHandler))
+            .bind()
+            .block();
 
         Thread.currentThread().join();
     }
