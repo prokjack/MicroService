@@ -23,8 +23,10 @@ node{
                 sh "ansible-playbook /var/lib/jenkins/ansible/sayarapp-deploy/deploy.yml  --user=jenkins --extra-vars ImageName=${ImageName} --extra-vars imageTag=${imageTag} --extra-vars Namespace=${Namespace}"
             }
     } catch (err) {
-        currentBuild.result = 'FAILURE'
+        print err
         echo 'Something failed, I should sound the klaxons!'
         throw
+        currentBuild.result = 'FAILURE'
+
     }
 }
