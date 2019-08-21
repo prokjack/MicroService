@@ -32,7 +32,7 @@ node{
                    //Update the imagetag to the latest version
                    sh("sed -i.bak 's#localhost:5000/${project}/${appName}:${imageVersion}#${imageTag}#' ./k8s/development/*.yaml")
                    //Create or update resources
-           sh("kubectl --namespace=${namespace} apply -f k8s/development/deployment.yaml")
+                   sh("kubectl --namespace=${namespace} apply -f k8s/development/deployment.yaml")
                    sh("kubectl --namespace=${namespace} apply -f k8s/development/service.yaml")
                    //Grab the external Ip address of the service
                    sh("echo http://`kubectl --namespace=${namespace} get service/${feSvcName} --output=json | jq -r '.status.loadBalancer.ingress[0].ip'` > ${feSvcName}")
@@ -58,6 +58,6 @@ node{
                    sh("kubectl --namespace=${namespace} apply -f k8s/development/service.yaml")
                    sh("echo http://`kubectl --namespace=${namespace} get service/${feSvcName} --output=json | jq -r '.status.loadBalancer.ingress[0].ip'` > ${feSvcName}")
                    break
+       }
   }
-
 }
