@@ -5,7 +5,7 @@ node{
     def imageVersion = "development"
     def imageTag = "localhost:5000/${project}/${appName}:${imageVersion}.${env.BUILD_NUMBER}"
     def ImageName = "microservice"
-    def Creds = "docker-cred-id"
+    def creds = "docker-cred-id"
 
     try{
         stage('Checkout'){
@@ -14,7 +14,7 @@ node{
                   imageTag= readFile('.git/commit-id').trim()
         }
         stage('Docker Build, Push'){
-            withDockerRegistry([credentialsId: "${Creds}", url: 'http://localhost:5000/v2/']) {
+            withDockerRegistry([credentialsId: "${creds}", url: 'http://localhost:5000']) {
                 sh "docker build -t ${ImageName}:${imageTag} ."
                 sh "docker push ${ImageName}"
             }
