@@ -1,63 +1,28 @@
 node{
+    def Namespace = "development"
+    def ImageName = "sayarapp/sayarapp"
 
-  //Define all variables
-  def project = 'my-project'
-  def appName = 'microservice'
-  def serviceName = "${appName}-backend"
-  def imageVersion = 'development'
-  def namespace = 'development'
-  def imageTag = "localhost:5000/${project}/${appName}:${imageVersion}.${env.BUILD_NUMBER}"
+    def project = "my-project"
+    def appName = "microservice"
+    def imageVersion = "development"
+    def imageTag = "localhost:5000/${project}/${appName}:${imageVersion}.${env.BUILD_NUMBER}"
 
-  //Checkout Code from Git
-  checkout scm
+    def Creds = "2dfd9d0d-a300-49ee-aaaf-0a3efcaa5279"
 
-  //Stage 1 : Build the docker image.
-  stage('Build image') {
-      sh("docker build -t ${imageTag} .")
-  }
-
-  //Stage 2 : Push the image to docker registry
-  stage('Push image to registry') {
-//       sh("gcloud docker -- push ${imageTag}")
-      sh("docker -- push ${imageTag}")
-  }
-
-  //Stage 3 : Deploy Application
-  stage('Deploy Application') {
-       switch (namespace) {
-              //Roll out to Dev Environment
-              case "development":
-                   // Create namespace if it doesn't exist
-                   sh("kubectl get ns ${namespace} || kubectl create ns ${namespace}")
-                   //Update the imagetag to the latest version
-                   sh("sed -i.bak 's#localhost:5000/${project}/${appName}:${imageVersion}#${imageTag}#' ./k8s/development/*.yaml")
-                   //Create or update resources
-                   sh("kubectl --namespace=${namespace} apply -f k8s/development/deployment.yaml")
-                   sh("kubectl --namespace=${namespace} apply -f k8s/development/service.yaml")
-                   //Grab the external Ip address of the service
-                   sh("echo http://`kubectl --namespace=${namespace} get service/${feSvcName} --output=json | jq -r '.status.loadBalancer.ingress[0].ip'` > ${feSvcName}")
-                   break
-
-               //Roll out to Prod Environment
-              case "production":
-                   // Create namespace if it doesn't exist
-                   sh("kubectl get ns ${namespace} || kubectl create ns ${namespace}")
-                   //Update the imagetag to the latest version
-                   sh("sed -i.bak 's#localhost:5000/${project}/${appName}:${imageVersion}#${imageTag}#' ./k8s/production/*.yaml")
-                   //Create or update resources
-                   sh("kubectl --namespace=${namespace} apply -f k8s/production/deployment.yaml")
-                   sh("kubectl --namespace=${namespace} apply -f k8s/production/service.yaml")
-                   //Grab the external Ip address of the service
-                   sh("echo http://`kubectl --namespace=${namespace} get service/${feSvcName} --output=json | jq -r '.status.loadBalancer.ingress[0].ip'` > ${feSvcName}")
-                   break
-
-              default:
-                   sh("kubectl get ns ${namespace} || kubectl create ns ${namespace}")
-                   sh("sed -i.bak 's#localhost:5000/${project}/${appName}:${imageVersion}#${imageTag}#' ./k8s/development/*.yaml")
-                   sh("kubectl --namespace=${namespace} apply -f k8s/development/deployment.yaml")
-                   sh("kubectl --namespace=${namespace} apply -f k8s/development/service.yaml")
-                   sh("echo http://`kubectl --namespace=${namespace} get service/${feSvcName} --output=json | jq -r '.status.loadBalancer.ingress[0].ip'` > ${feSvcName}")
-                   break
-       }
-  }
+    try{
+        stage('Checkout'){
+            checkout scm
+        }
+        stage('Docker Build, Push'){
+            withDockerRegistry([credentialsId: "${Creds}", url: 'http://localhost:5000/v2/']) {
+                sh "docker build -t ${ImageName}:${imageTag} ."
+                sh "docker push ${ImageName}"
+            }
+        }
+        stage('Deploy on K8s'){
+            sh "ansible-playbook /var/lib/jenkins/ansible/sayarapp-deploy/deploy.yml  --user=jenkins --extra-vars ImageName=${ImageName} --extra-vars imageTag=${imageTag} --extra-vars Namespace=${Namespace}"
+        }
+    } catch (err) {
+        currentBuild.result = 'FAILURE'
+    }
 }
