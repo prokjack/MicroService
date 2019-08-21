@@ -24,5 +24,7 @@ node{
             }
     } catch (err) {
         currentBuild.result = 'FAILURE'
+        echo 'Something failed, I should sound the klaxons!'
+        throw
     }
 }
