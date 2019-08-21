@@ -5,7 +5,7 @@ node{
     def imageVersion = "development"
     def imageTag = "localhost:5000/${project}/${appName}:${imageVersion}.${env.BUILD_NUMBER}"
     def ImageName = "microservice"
-    def Creds = "2dfd9d0d-a300-49ee-aaaf-0a3efcaa5279"
+    def Creds = "docker-cred-id"
 
     try{
         stage('Checkout'){
