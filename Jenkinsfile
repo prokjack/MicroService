@@ -15,8 +15,8 @@ node{
             }
             stage('Docker Build, Push'){
                 withDockerRegistry([credentialsId: "${creds}", url: 'http://localhost:5000']) {
-                    sh "docker build -t microservice:localhost:5000/microservice ."
-                    sh "docker push microservice"
+                    sh "docker build -t localhost:5000/development:${ImageName} ."
+                    sh "docker push ${ImageName}"
                 }
             }
             stage('Deploy on K8s'){
