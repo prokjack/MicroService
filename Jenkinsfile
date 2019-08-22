@@ -14,7 +14,7 @@ node{
                 imageTag = readFile('.git/commit-id').trim()
             }
             stage('Docker Build, Push'){
-                withDockerRegistry([credentialsId: "${creds}", url: 'http://localhost:5000']) {
+                withDockerRegistry([credentialsId: "${creds}", url: 'localhost:5000']) {
                 sh """
                     docker build -t ${imageTag} .
                     docker push ${ImageName}
