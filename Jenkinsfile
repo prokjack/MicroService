@@ -1,9 +1,20 @@
+podTemplate(label: label, containers: [
+  containerTemplate(name: 'gradle', image: 'gradle:4.5.1-jdk9', command: 'cat', ttyEnabled: true),
+  containerTemplate(name: 'docker', image: 'docker', command: 'cat', ttyEnabled: true),
+  containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:latest', command: 'cat', ttyEnabled: true),
+  containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:latest', command: 'cat', ttyEnabled: true)
+],
+volumes: [
+  hostPathVolume(mountPath: '/home/gradle/.gradle', hostPath: '/tmp/jenkins/.gradle'),
+  hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock')
+])
+
 node{
     def Namespace = "development"
     def project = "my-project"
     def appName = "microservice"
     def imageVersion = "development"
-    def imageTag = "localhost:5000/${project}/${appName}:${imageVersion}.${env.BUILD_NUMBER}"
+    def imageTag = "localhost:5000/${project}:${appName}:${imageVersion}:${env.BUILD_NUMBER}"
     def ImageName = "microservice"
     def creds = "docker-cred-id"
 
@@ -15,8 +26,10 @@ node{
             }
             stage('Docker Build, Push'){
                 withDockerRegistry([credentialsId: "${creds}", url: 'http://localhost:5000']) {
-                    sh "docker build -t localhost:5000/development:${ImageName} ."
-                    sh "docker push ${ImageName}"
+                sh """
+                    docker build -t ${imageTag} .
+                    docker push ${ImageName}
+                    """
                 }
             }
             stage('Deploy on K8s'){
@@ -25,8 +38,6 @@ node{
     } catch (err) {
         print err
         echo 'Something failed, I should sound the klaxons!'
-        currentBuild.result = 'FAILURE'
         throw err
-
     }
 }
